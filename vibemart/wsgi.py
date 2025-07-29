@@ -5,6 +5,5 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'vibemart.settings')
 
 application = get_wsgi_application()
 
-# For Vercel deployment
+# Vercel handler
 app = application
-handler = application

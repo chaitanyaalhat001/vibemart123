@@ -2,14 +2,14 @@
   "version": 2,
   "builds": [
     {
-      "src": "vibemart/wsgi.py",
+      "src": "index.py",
       "use": "@vercel/python"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "vibemart/wsgi.py"
+      "dest": "index.py"
     }
   ]
 } 
