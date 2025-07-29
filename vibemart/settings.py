@@ -143,11 +143,11 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
-# For production (Vercel)
-if not DEBUG:
-    STATIC_ROOT = BASE_DIR / 'staticfiles_build' / 'static'
-else:
-    STATIC_ROOT = BASE_DIR / 'staticfiles'
+# Static files configuration for Vercel
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# WhiteNoise configuration
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files
 MEDIA_URL = '/media/'
