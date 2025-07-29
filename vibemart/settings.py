@@ -149,6 +149,9 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # WhiteNoise configuration
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+# Disable collectstatic during build (Vercel handles this)
+DISABLE_COLLECTSTATIC = 1
+
 # Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
