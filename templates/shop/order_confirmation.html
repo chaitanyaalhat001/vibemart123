@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Order Confirmation - VibeMart{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Success Message -->
+            <div class="text-center mb-5">
+                <div class="card border-success">
+                    <div class="card-body py-5">
+                        <i class="fas fa-check-circle fa-5x text-success mb-4"></i>
+                        <h2 class="text-success mb-3">Order Placed Successfully!</h2>
+                        <p class="lead text-muted mb-4">Thank you for your purchase. Your order has been confirmed and is being processed.</p>
+                        
+                        <div class="row justify-content-center">
+                            <div class="col-md-8">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <div class="row text-center">
+                                            <div class="col-6">
+                                                <h6 class="text-muted">Order ID</h6>
+                                                <p class="fw-bold mb-0">{{ order.order_id }}</p>
+                                            </div>
+                                            <div class="col-6">
+                                                <h6 class="text-muted">Tracking ID</h6>
+                                                <p class="fw-bold mb-0 text-primary">{{ order.tracking_id }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Details -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-receipt me-2"></i>Order Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>Order Information</h6>
+                            <p class="mb-1"><strong>Order Date:</strong> {{ order.created_at|date:"F d, Y g:i A" }}</p>
+                            <p class="mb-1"><strong>Status:</strong> 
+                                <span class="badge status-{{ order.status }}">{{ order.get_status_display }}</span>
+                            </p>
+                            <p class="mb-0"><strong>Total Amount:</strong> ${{ order.total_amount }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Shipping Information</h6>
+                            <p class="mb-1"><strong>Tracking ID:</strong> {{ order.tracking_id }}</p>
+                            <p class="mb-0"><strong>Delivery Address:</strong><br>
+                                {{ order.shipping_address|linebreaks }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Items -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-box me-2"></i>Items Ordered</h5>
+                </div>
+                <div class="card-body">
+                    {% for item in order.items.all %}
+                    <div class="row align-items-center mb-3 pb-3 {% if not forloop.last %}border-bottom{% endif %}">
+                        <div class="col-md-2">
+                            <img src="{% if item.product.image %}{{ item.product.image.url }}{% else %}{% static 'images/placeholder.svg' %}{% endif %}" 
+                                 class="img-fluid rounded" alt="{{ item.product.name }}" style="height: 60px; object-fit: cover;">
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="mb-1">{{ item.product.name }}</h6>
+                            <p class="text-muted small mb-1">{{ item.product.description|truncatewords:10 }}</p>
+                            <p class="text-success small mb-0">
+                                <i class="fas fa-store me-1"></i>{{ item.product.vendor.first_name }} {{ item.product.vendor.last_name }}
+                            </p>
+                        </div>
+                        <div class="col-md-2 text-center">
+                            <span>{{ item.quantity }}x</span>
+                        </div>
+                        <div class="col-md-2 text-end">
+                            <span class="fw-bold">${{ item.get_total_price }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="text-center mb-5">
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="{% url 'shop:orders' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-list me-2"></i>View All Orders
+                    </a>
+                    <a href="{% url 'shop:products' %}" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-shopping-bag me-2"></i>Continue Shopping
+                    </a>
+                    <a href="{% url 'dashboard:home' %}" class="btn btn-outline-secondary btn-lg">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- What's Next -->
+            <div class="card border-info">
+                <div class="card-header bg-info text-white">
+                    <h5><i class="fas fa-info-circle me-2"></i>What's Next?</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-3">
+                            <i class="fas fa-cog fa-2x text-info mb-2"></i>
+                            <h6>Processing</h6>
+                            <p class="small text-muted">Your order is being prepared by the vendor.</p>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            <i class="fas fa-truck fa-2x text-warning mb-2"></i>
+                            <h6>Shipping</h6>
+                            <p class="small text-muted">You'll receive updates on shipping progress.</p>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            <i class="fas fa-home fa-2x text-success mb-2"></i>
+                            <h6>Delivery</h6>
+                            <p class="small text-muted">Your order will be delivered to your address.</p>
+                        </div>
+                    </div>
+                    <div class="text-center mt-3">
+                        <p class="mb-0">
+                            <strong>Track your order:</strong> Use tracking ID <code>{{ order.tracking_id }}</code> 
+                            to monitor your order status in <a href="{% url 'shop:orders' %}">My Orders</a>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

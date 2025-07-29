@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Checkout - VibeMart{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2><i class="fas fa-credit-card me-3"></i>Checkout</h2>
+            <p class="text-muted">Review your order and complete your purchase</p>
+        </div>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="row">
+            <!-- Order Summary -->
+            <div class="col-lg-8 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-list me-2"></i>Order Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        {% for item in cart_items %}
+                        <div class="cart-item">
+                            <div class="row align-items-center">
+                                <div class="col-md-2">
+                                    <img src="{% if item.product.image %}{{ item.product.image.url }}{% else %}{% static 'images/placeholder.svg' %}{% endif %}" 
+                                         class="img-fluid rounded" alt="{{ item.product.name }}" style="height: 60px; object-fit: cover;">
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="mb-1">{{ item.product.name }}</h6>
+                                    <p class="text-muted small mb-0">{{ item.product.description|truncatewords:8 }}</p>
+                                </div>
+                                <div class="col-md-2 text-center">
+                                    <span>{{ item.quantity }}x</span>
+                                </div>
+                                <div class="col-md-2 text-end">
+                                    <span class="fw-bold">${{ item.get_total_price }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Shipping Address -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5><i class="fas fa-truck me-2"></i>Shipping Address</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="shipping_address" class="form-label">Delivery Address</label>
+                            <textarea class="form-control" id="shipping_address" name="shipping_address" rows="3" required>{{ user.address }}</textarea>
+                            <div class="form-text">Please ensure your address is correct for delivery.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Summary -->
+            <div class="col-lg-4 mb-4">
+                <div class="card sticky-top" style="top: 20px;">
+                    <div class="card-header bg-success text-white">
+                        <h5><i class="fas fa-calculator me-2"></i>Payment Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal:</span>
+                            <span>${{ total_amount }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Shipping:</span>
+                            <span class="text-success">Free</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Tax:</span>
+                            <span>$0.00</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between mb-3">
+                            <strong>Total:</strong>
+                            <strong>${{ total_amount }}</strong>
+                        </div>
+                        
+                        <!-- Wallet Balance -->
+                        <div class="card bg-light mb-3">
+                            <div class="card-body py-2">
+                                <div class="d-flex justify-content-between">
+                                    <span>Wallet Balance:</span>
+                                    <span class="fw-bold {% if wallet_balance >= total_amount %}text-success{% else %}text-danger{% endif %}">
+                                        ${{ wallet_balance }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if wallet_balance >= total_amount %}
+                        <div class="alert alert-success small">
+                            <i class="fas fa-check-circle me-2"></i>
+                            Sufficient balance available
+                        </div>
+                        {% else %}
+                        <div class="alert alert-warning small">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Insufficient balance. Please <a href="{% url 'accounts:wallet' %}" class="alert-link">add money</a> to your wallet.
+                        </div>
+                        {% endif %}
+                        
+                        <div class="d-grid gap-2">
+                            {% if wallet_balance >= total_amount %}
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-credit-card me-2"></i>Place Order
+                            </button>
+                            {% else %}
+                            <a href="{% url 'accounts:wallet' %}" class="btn btn-warning btn-lg">
+                                <i class="fas fa-wallet me-2"></i>Add Money to Wallet
+                            </a>
+                            {% endif %}
+                            <a href="{% url 'shop:cart' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Cart
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %} 

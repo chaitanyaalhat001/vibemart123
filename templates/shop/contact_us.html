@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Contact Us - VibeMart{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Page Header -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="text-center py-5 bg-primary text-white rounded">
+                <h1 class="display-4 fw-bold mb-3">
+                    <i class="fas fa-phone me-3"></i>Contact Us
+                </h1>
+                <p class="lead">We'd love to hear from you. Get in touch with our team!</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Contact Form -->
+        <div class="col-lg-8 mb-5">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4><i class="fas fa-envelope me-2"></i>Send us a Message</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Your Name *</label>
+                                    <input type="text" class="form-control" id="name" name="name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email Address *</label>
+                                    <input type="email" class="form-control" id="email" name="email" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">Subject *</label>
+                            <select class="form-control" id="subject" name="subject" required>
+                                <option value="">Choose a subject...</option>
+                                <option value="General Inquiry">General Inquiry</option>
+                                <option value="Order Support">Order Support</option>
+                                <option value="Vendor Support">Vendor Support</option>
+                                <option value="Technical Issue">Technical Issue</option>
+                                <option value="Billing Question">Billing Question</option>
+                                <option value="Partnership">Partnership</option>
+                                <option value="Feedback">Feedback</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="message" class="form-label">Message *</label>
+                            <textarea class="form-control" id="message" name="message" rows="6" 
+                                    placeholder="Please describe your inquiry in detail..." required></textarea>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane me-2"></i>Send Message
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="col-lg-4 mb-5">
+            <!-- Contact Details -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5><i class="fas fa-map-marker-alt me-2"></i>Contact Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6><i class="fas fa-envelope me-2 text-primary"></i>Email</h6>
+                        <p class="text-muted mb-0">support@vibemart.com</p>
+                        <p class="text-muted mb-0">sales@vibemart.com</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6><i class="fas fa-phone me-2 text-success"></i>Phone</h6>
+                        <p class="text-muted mb-0">+1 (555) 123-4567</p>
+                        <p class="text-muted mb-0">+1 (555) 987-6543</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6><i class="fas fa-map-marker-alt me-2 text-warning"></i>Address</h6>
+                        <p class="text-muted mb-0">123 Shopping Street<br>
+                        E-commerce City, EC 12345<br>
+                        United States</p>
+                    </div>
+                    
+                    <div class="mb-0">
+                        <h6><i class="fas fa-clock me-2 text-info"></i>Business Hours</h6>
+                        <p class="text-muted mb-1">Monday - Friday: 9:00 AM - 6:00 PM</p>
+                        <p class="text-muted mb-1">Saturday: 10:00 AM - 4:00 PM</p>
+                        <p class="text-muted mb-0">Sunday: Closed</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h5><i class="fas fa-question-circle me-2"></i>Quick Help</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'shop:about_us' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-info-circle me-2"></i>About VibeMart
+                        </a>
+                        <a href="{% url 'accounts:register' %}" class="btn btn-outline-success btn-sm">
+                            <i class="fas fa-user-plus me-2"></i>Create Account
+                        </a>
+                        <a href="{% url 'accounts:vendor_register' %}" class="btn btn-outline-warning btn-sm">
+                            <i class="fas fa-store me-2"></i>Become a Vendor
+                        </a>
+                        <a href="{% url 'shop:products' %}" class="btn btn-outline-info btn-sm">
+                            <i class="fas fa-shopping-bag me-2"></i>Browse Products
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="text-center mb-5"><i class="fas fa-question-circle me-3 text-primary"></i>Frequently Asked Questions</h2>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-primary">How do I place an order?</h5>
+                    <p class="card-text">Simply browse our products, add items to your cart, and proceed to checkout. You'll need to create an account and add money to your wallet to complete your purchase.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-success">How does the wallet system work?</h5>
+                    <p class="card-text">Our secure wallet system allows you to add money and use it for purchases. You can add funds using the wallet management section in your dashboard.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-warning">How can I become a vendor?</h5>
+                    <p class="card-text">Click on "Become a Vendor" in the navigation menu, fill out the registration form, and start selling your products immediately after approval.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-info">How do I track my order?</h5>
+                    <p class="card-text">Once your order is placed, you'll receive a tracking ID. You can use this ID to track your order status in the "My Orders" section of your dashboard.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Social Media & Newsletter -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card bg-dark text-white">
+                <div class="card-body text-center py-5">
+                    <h3 class="mb-4">Stay Connected</h3>
+                    <p class="lead mb-4">Follow us on social media for updates and special offers!</p>
+                    <div class="d-flex justify-content-center gap-3 mb-4">
+                        <a href="#" class="btn btn-outline-light btn-lg">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-light btn-lg">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-light btn-lg">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-light btn-lg">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                    </div>
+                    <div class="row justify-content-center">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="email" class="form-control" placeholder="Enter your email for newsletter">
+                                <button class="btn btn-primary" type="button">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

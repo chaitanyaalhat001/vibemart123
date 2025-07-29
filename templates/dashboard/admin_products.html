@@ -1,0 +1,510 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Products - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-box me-3"></i>Manage Products</h2>
+                    <p class="text-muted">View and manage all platform products</p>
+                </div>
+                <a href="{% url 'dashboard:home' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-search me-2"></i>Search Products</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-8">
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                <input type="text" class="form-control" name="search" 
+                                       value="{{ search_query }}" 
+                                       placeholder="Search by product name, description, vendor, or category...">
+                            </div>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-search me-1"></i>Search
+                            </button>
+                            <a href="{% url 'dashboard:admin_products' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i>Clear
+                            </a>
+                        </div>
+                    </form>
+                    {% if search_query %}
+                    <div class="mt-3">
+                        <div class="alert alert-info mb-0">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Showing results for: <strong>"{{ search_query }}"</strong>
+                            <a href="{% url 'dashboard:admin_products' %}" class="btn btn-sm btn-outline-primary ms-2">
+                                <i class="fas fa-times me-1"></i>Clear Search
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden CSRF token for JavaScript -->
+    {% csrf_token %}
+
+    <!-- Products Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5><i class="fas fa-list me-2"></i>Products List</h5>
+                    <span class="badge bg-primary">{{ products|length }} of {{ products.paginator.count }} products</span>
+                </div>
+                <div class="card-body">
+                    {% if products %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Image</th>
+                                        <th>Product</th>
+                                        <th>Vendor</th>
+                                        <th>Category</th>
+                                        <th>Price</th>
+                                        <th>Stock</th>
+                                        <th>Status</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for product in products %}
+                                    <tr>
+                                        <td>
+                                            {% if product.image %}
+                                                <img src="{{ product.image.url }}" alt="{{ product.name }}" 
+                                                     class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;">
+                                            {% else %}
+                                                <div class="bg-light text-center d-flex align-items-center justify-content-center" 
+                                                     style="width: 50px; height: 50px;">
+                                                    <i class="fas fa-image text-muted"></i>
+                                                </div>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <strong>{{ product.name }}</strong><br>
+                                            <small class="text-muted">{{ product.description|truncatechars:50 }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-success">{{ product.vendor.username }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">{{ product.category.name }}</span>
+                                        </td>
+                                        <td>
+                                            <strong class="text-success">${{ product.price }}</strong>
+                                        </td>
+                                        <td>
+                                            {% if product.stock > 10 %}
+                                                <span class="badge bg-success">{{ product.stock }}</span>
+                                            {% elif product.stock > 0 %}
+                                                <span class="badge bg-warning">{{ product.stock }}</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">{{ product.stock }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if product.is_active %}
+                                                <span class="badge bg-success">Active</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Inactive</span>
+                                            {% endif %}
+                                        </td>
+                                        <td><small>{{ product.created_at|date:"M d, Y" }}</small></td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group" aria-label="Product Actions">
+                                                <a href="{% url 'shop:product_detail' product.id %}" 
+                                                   class="btn btn-outline-primary btn-sm" 
+                                                   target="_blank" 
+                                                   title="View Product on Store"
+                                                   data-bs-toggle="tooltip">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="/admin/shop/product/{{ product.id }}/change/" 
+                                                   class="btn btn-outline-warning btn-sm" 
+                                                   target="_blank" 
+                                                   title="Edit Product in Django Admin"
+                                                   data-bs-toggle="tooltip">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <button class="btn btn-outline-info btn-sm view-vendor-btn" 
+                                                        title="View Vendor Information" 
+                                                        data-vendor-id="{{ product.vendor.id }}"
+                                                        data-bs-toggle="tooltip">
+                                                    <i class="fas fa-store"></i>
+                                                </button>
+                                                <button class="btn btn-outline-danger btn-sm remove-product-btn" 
+                                                        title="Remove Product from Marketplace" 
+                                                        data-product-id="{{ product.id }}"
+                                                        data-product-name="{{ product.name }}"
+                                                        data-vendor-name="{{ product.vendor.username }}"
+                                                        data-bs-toggle="tooltip">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        {% if products.has_other_pages %}
+                        <nav aria-label="Products pagination" class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                {% if products.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}">
+                                            <i class="fas fa-angle-double-left"></i>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ products.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">
+                                            <i class="fas fa-angle-left"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+
+                                {% for num in products.paginator.page_range %}
+                                    {% if products.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}">{{ num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if products.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ products.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">
+                                            <i class="fas fa-angle-right"></i>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ products.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}">
+                                            <i class="fas fa-angle-double-right"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                        {% endif %}
+
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-box fa-3x text-muted mb-3"></i>
+                            <h5>No Products Found</h5>
+                            <p class="text-muted">No products have been listed yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mt-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-primary">
+                <div class="card-body text-center">
+                    <i class="fas fa-box fa-2x text-primary mb-2"></i>
+                    <h5 class="text-primary">{{ products.paginator.count }}</h5>
+                    <p class="text-muted mb-0">Total Products</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                    <h5 class="text-success">Active</h5>
+                    <p class="text-muted mb-0">Status</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-info">
+                <div class="card-body text-center">
+                    <i class="fas fa-store fa-2x text-info mb-2"></i>
+                    <h5 class="text-info">Vendors</h5>
+                    <p class="text-muted mb-0">Multiple</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-warning">
+                <div class="card-body text-center">
+                    <i class="fas fa-cog fa-2x text-warning mb-2"></i>
+                    <h5 class="text-warning">Manage</h5>
+                    <p class="text-muted mb-0">Actions</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Bootstrap tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Handle view vendor buttons
+    document.querySelectorAll('.view-vendor-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const vendorId = this.getAttribute('data-vendor-id');
+            showVendorInfo(vendorId);
+        });
+    });
+
+    // Handle remove product buttons
+    document.querySelectorAll('.remove-product-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const productId = this.getAttribute('data-product-id');
+            const productName = this.getAttribute('data-product-name');
+            const vendorName = this.getAttribute('data-vendor-name');
+
+            if (confirm(`Are you sure you want to remove "${productName}" (Vendor: ${vendorName})?\n\nThis action cannot be undone and will:\n• Remove the product from the marketplace\n• Delete all product data\n• This cannot be reversed\n\nContinue?`)) {
+                // Show loading state
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                this.disabled = true;
+                
+                // Create a form and submit it for secure deletion
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `{% url 'dashboard:admin_remove_product' 0 %}`.replace('0', productId);
+                
+                // Add CSRF token
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+                if (csrfToken) {
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = 'csrfmiddlewaretoken';
+                    csrfInput.value = csrfToken.value;
+                    form.appendChild(csrfInput);
+                } else {
+                    // Fallback: get CSRF token from cookie
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = 'csrfmiddlewaretoken';
+                    csrfInput.value = getCookie('csrftoken');
+                    form.appendChild(csrfInput);
+                }
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    });
+
+    // Helper function to get cookie value
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Function to show vendor information
+    function showVendorInfo(vendorId) {
+        // In a real implementation, this could fetch vendor details via AJAX
+        alert(`Vendor Information\n\nVendor ID: ${vendorId}\n\nFeatures available:\n• View vendor profile\n• See all vendor products\n• Check vendor statistics\n• Contact vendor\n\nThis can be extended to show detailed vendor information in a modal or separate page.`);
+    }
+
+    // Search functionality enhancements
+    const searchInput = document.querySelector('input[name="search"]');
+    const searchForm = searchInput.closest('form');
+    
+    // Focus search input when Ctrl+F is pressed
+    document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.key === 'f') {
+            e.preventDefault();
+            searchInput.focus();
+            searchInput.select();
+        }
+    });
+
+    // Auto-submit search form on Enter key
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            searchForm.submit();
+        }
+    });
+
+    // Clear search when Escape is pressed and input is focused
+    searchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            searchInput.value = '';
+            searchInput.blur();
+        }
+    });
+
+    // Highlight search terms in results
+    const searchQuery = '{{ search_query|escapejs }}';
+    if (searchQuery.length > 0) {
+        highlightSearchTerms(searchQuery);
+    }
+
+    // Auto-focus search input if there's a search query
+    if (searchQuery.length > 0) {
+        // Focus after a short delay to ensure page is loaded
+        setTimeout(function() {
+            searchInput.focus();
+            // Move cursor to end of input
+            const len = searchInput.value.length;
+            searchInput.setSelectionRange(len, len);
+        }, 100);
+    }
+});
+
+// Function to highlight search terms in the results
+function highlightSearchTerms(query) {
+    const searchTerms = query.toLowerCase().split(' ');
+    const tableRows = document.querySelectorAll('table tbody tr');
+    
+    tableRows.forEach(function(row) {
+        const cells = row.querySelectorAll('td');
+        cells.forEach(function(cell) {
+            if (cell.querySelector('button, a')) return; // Skip action cells
+            
+            const originalText = cell.textContent;
+            let highlightedText = originalText;
+            
+            searchTerms.forEach(function(term) {
+                if (term.length > 1) {
+                    const regex = new RegExp('(' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+                    highlightedText = highlightedText.replace(regex, '<mark class="search-highlight">$1</mark>');
+                }
+            });
+            
+            if (highlightedText !== originalText) {
+                cell.innerHTML = highlightedText;
+            }
+        });
+    });
+}
+</script>
+
+<style>
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+    background-color: #f8f9fa;
+}
+
+.btn-group-sm .btn {
+    padding: 0.25rem 0.4rem;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.img-thumbnail {
+    border-radius: 0.375rem;
+}
+
+/* Search enhancements */
+.search-highlight {
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 1px 2px;
+    border-radius: 2px;
+    font-weight: 500;
+}
+
+.input-group-text {
+    background-color: #f8f9fa;
+    border-color: #ced4da;
+}
+
+input[name="search"]:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Smooth transitions for search results */
+tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+/* Search info alert styling */
+.alert-info {
+    border-left: 4px solid #0dcaf0;
+}
+
+/* Loading animation for search */
+.btn[type="submit"]:disabled {
+    position: relative;
+}
+
+.btn[type="submit"]:disabled::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    margin: auto;
+    border: 2px solid transparent;
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
+{% endblock %} 

@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Contact Details - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-envelope me-3"></i>Contact Message Details</h2>
+                    <p class="text-muted">View and manage contact message from {{ contact.name }}</p>
+                </div>
+                <a href="{% url 'dashboard:admin_contacts' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Contacts
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Information -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5><i class="fas fa-user me-2"></i>Contact Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Personal Details</h6>
+                            <p><strong>Name:</strong> {{ contact.name }}</p>
+                            <p><strong>Email:</strong> 
+                                <a href="mailto:{{ contact.email }}" class="text-decoration-none">{{ contact.email }}</a>
+                            </p>
+                            <p><strong>Subject:</strong> 
+                                <span class="badge bg-secondary">{{ contact.subject }}</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Message Details</h6>
+                            <p><strong>Status:</strong> 
+                                {% if contact.status == 'new' %}
+                                    <span class="badge bg-warning">New</span>
+                                {% elif contact.status == 'in_progress' %}
+                                    <span class="badge bg-info">In Progress</span>
+                                {% elif contact.status == 'resolved' %}
+                                    <span class="badge bg-success">Resolved</span>
+                                {% elif contact.status == 'closed' %}
+                                    <span class="badge bg-secondary">Closed</span>
+                                {% endif %}
+                            </p>
+                            <p><strong>Submitted:</strong> {{ contact.created_at|date:"M d, Y g:i A" }}</p>
+                            <p><strong>Last Updated:</strong> {{ contact.updated_at|date:"M d, Y g:i A" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5><i class="fas fa-tools me-2"></i>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Status Update -->
+                    <div class="mb-3">
+                        <h6>Update Status</h6>
+                        <form method="post" action="{% url 'dashboard:admin_update_contact_status' contact.id %}">
+                            {% csrf_token %}
+                            <select class="form-select mb-2" name="status">
+                                <option value="new" {% if contact.status == 'new' %}selected{% endif %}>New</option>
+                                <option value="in_progress" {% if contact.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                <option value="resolved" {% if contact.status == 'resolved' %}selected{% endif %}>Resolved</option>
+                                <option value="closed" {% if contact.status == 'closed' %}selected{% endif %}>Closed</option>
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-success w-100">
+                                <i class="fas fa-save me-1"></i>Update Status
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <!-- Email Reply -->
+                    <div class="mb-3">
+                        <h6>Email Reply</h6>
+                        <a href="mailto:{{ contact.email }}?subject=Re: {{ contact.subject }}&body=Dear {{ contact.name }},%0D%0A%0D%0AThank you for contacting VibeMart.%0D%0A%0D%0A" 
+                           class="btn btn-outline-primary w-100">
+                            <i class="fas fa-reply me-1"></i>Reply via Email
+                        </a>
+                    </div>
+                    
+                    <!-- Django Admin Link -->
+                    <div>
+                        <h6>Advanced Actions</h6>
+                        <a href="/admin/shop/contact/{{ contact.id }}/change/" 
+                           class="btn btn-outline-info w-100" 
+                           target="_blank">
+                            <i class="fas fa-cogs me-1"></i>Edit in Django Admin
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Content -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5><i class="fas fa-comment me-2"></i>Message Content</h5>
+                </div>
+                <div class="card-body">
+                    <div class="bg-light p-3 rounded">
+                        <p class="mb-0">{{ contact.message|linebreaks }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Notes -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5><i class="fas fa-sticky-note me-2"></i>Admin Notes</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="admin_notes" class="form-label">Internal Notes</label>
+                            <textarea class="form-control" id="admin_notes" name="admin_notes" rows="6" 
+                                    placeholder="Add your internal notes about this contact message...">{{ contact.admin_notes }}</textarea>
+                            <div class="form-text">These notes are only visible to administrators and will not be sent to the customer.</div>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Notes
+                            </button>
+                            <small class="text-muted align-self-center">
+                                {% if contact.admin_notes %}
+                                    Last updated: {{ contact.updated_at|date:"M d, Y g:i A" }}
+                                {% else %}
+                                    No notes added yet
+                                {% endif %}
+                            </small>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.badge {
+    font-size: 0.9em;
+}
+
+.bg-light {
+    border: 1px solid #dee2e6;
+}
+
+textarea {
+    resize: vertical;
+}
+</style>
+{% endblock %} 

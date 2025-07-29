@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}User Dashboard - VibeMart{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="dashboard-card">
+                <h2><i class="fas fa-tachometer-alt me-3"></i>Welcome, {{ user.first_name|default:user.username }}!</h2>
+                <p>Manage your orders, wallet, and shop for amazing products.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="stats-card">
+                <div class="icon text-primary">
+                    <i class="fas fa-shopping-bag"></i>
+                </div>
+                <div class="number">{{ total_orders }}</div>
+                <div class="label">Total Orders</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card">
+                <div class="icon text-success">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <div class="number">${{ wallet.balance }}</div>
+                <div class="label">Wallet Balance</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card">
+                <div class="icon text-warning">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="number">${{ total_spent }}</div>
+                <div class="label">Total Spent</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <a href="{% url 'shop:products' %}" class="btn btn-primary w-100">
+                                <i class="fas fa-shopping-bag me-2"></i>Browse Products
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{% url 'shop:cart' %}" class="btn btn-success w-100">
+                                <i class="fas fa-shopping-cart me-2"></i>View Cart
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{% url 'accounts:wallet' %}" class="btn btn-warning w-100">
+                                <i class="fas fa-wallet me-2"></i>Manage Wallet
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{% url 'shop:orders' %}" class="btn btn-info w-100">
+                                <i class="fas fa-list me-2"></i>Order History
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Recent Orders -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5><i class="fas fa-clock me-2"></i>Recent Orders</h5>
+                    <a href="{% url 'shop:orders' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_orders %}
+                        {% for order in recent_orders %}
+                        <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                            <div>
+                                <h6 class="mb-1">Order #{{ order.order_id|slice:":8" }}...</h6>
+                                <p class="text-muted mb-0 small">{{ order.created_at|date:"M d, Y" }}</p>
+                            </div>
+                            <div class="text-end">
+                                <span class="fw-bold">${{ order.total_amount }}</span>
+                                <br>
+                                <span class="badge status-{{ order.status }}">{{ order.get_status_display }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center">No orders yet. <a href="{% url 'shop:products' %}">Start shopping!</a></p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Featured Products -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5><i class="fas fa-star me-2"></i>Featured Products</h5>
+                    <a href="{% url 'shop:products' %}" class="btn btn-sm btn-outline-primary">Browse All</a>
+                </div>
+                <div class="card-body">
+                    {% if featured_products %}
+                        <div class="row">
+                            {% for product in featured_products %}
+                            <div class="col-6 mb-3">
+                                <div class="card h-100">
+                                                                         <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'images/placeholder.svg' %}{% endif %}" 
+                                          class="card-img-top" alt="{{ product.name }}" style="height: 120px; object-fit: cover;">
+                                    <div class="card-body p-2">
+                                        <h6 class="card-title small">{{ product.name|truncatechars:20 }}</h6>
+                                        <p class="card-text">
+                                            <span class="price">${{ product.price }}</span>
+                                        </p>
+                                        <a href="{% url 'shop:product_detail' product.id %}" class="btn btn-primary btn-sm w-100">
+                                            View
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center">No featured products available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

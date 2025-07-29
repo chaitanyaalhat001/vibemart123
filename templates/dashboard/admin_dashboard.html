@@ -1,0 +1,329 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard - VibeMart{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-tachometer-alt me-3"></i>Admin Dashboard</h2>
+                    <p class="text-muted">Manage your VibeMart platform</p>
+                </div>
+                <div>
+                    <span class="badge bg-danger me-2">Administrator</span>
+                    <span class="text-muted">Welcome, {{ user.first_name|default:user.username }}!</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-primary">
+                <div class="card-body text-center">
+                    <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                    <h4 class="text-primary">{{ total_users }}</h4>
+                    <p class="text-muted mb-0">Total Users</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <i class="fas fa-store fa-2x text-success mb-2"></i>
+                    <h4 class="text-success">{{ total_vendors }}</h4>
+                    <p class="text-muted mb-0">Active Vendors</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-info">
+                <div class="card-body text-center">
+                    <i class="fas fa-box fa-2x text-info mb-2"></i>
+                    <h4 class="text-info">{{ total_products }}</h4>
+                    <p class="text-muted mb-0">Total Products</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-warning">
+                <div class="card-body text-center">
+                    <i class="fas fa-shopping-cart fa-2x text-warning mb-2"></i>
+                    <h4 class="text-warning">{{ total_orders }}</h4>
+                    <p class="text-muted mb-0">Total Orders</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue Stats -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <i class="fas fa-dollar-sign fa-2x text-success mb-2"></i>
+                    <h4 class="text-success">${{ total_revenue|floatformat:2 }}</h4>
+                    <p class="text-muted mb-0">Total Revenue</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card border-primary">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-line fa-2x text-primary mb-2"></i>
+                    <h4 class="text-primary">${{ monthly_revenue|floatformat:2 }}</h4>
+                    <p class="text-muted mb-0">This Month</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card border-info">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-day fa-2x text-info mb-2"></i>
+                    <h4 class="text-info">${{ daily_revenue|floatformat:2 }}</h4>
+                    <p class="text-muted mb-0">Today</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="{% url 'dashboard:admin_users' %}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-users fa-2x mb-2"></i><br>
+                                Manage Users
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="{% url 'dashboard:admin_products' %}" class="btn btn-outline-success w-100">
+                                <i class="fas fa-box fa-2x mb-2"></i><br>
+                                Manage Products
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="{% url 'dashboard:admin_orders' %}" class="btn btn-outline-warning w-100">
+                                <i class="fas fa-shopping-cart fa-2x mb-2"></i><br>
+                                Manage Orders
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="{% url 'dashboard:admin_contacts' %}" class="btn btn-outline-info w-100">
+                                <i class="fas fa-envelope fa-2x mb-2"></i><br>
+                                Manage Contacts
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="{% url 'dashboard:admin_marketplace_earnings' %}" class="btn btn-outline-success w-100">
+                                <i class="fas fa-dollar-sign fa-2x mb-2"></i><br>
+                                Marketplace Earnings
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="/admin/" class="btn btn-outline-info w-100" target="_blank">
+                                <i class="fas fa-cogs fa-2x mb-2"></i><br>
+                                Django Admin
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary w-100">
+                                <i class="fas fa-user fa-2x mb-2"></i><br>
+                                Profile
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="{% url 'accounts:logout' %}" class="btn btn-outline-danger w-100">
+                                <i class="fas fa-sign-out-alt fa-2x mb-2"></i><br>
+                                Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <!-- Recent Orders -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-clock me-2"></i>Recent Orders</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_orders %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>User</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in recent_orders %}
+                                    <tr>
+                                        <td><small>{{ order.order_id|truncatechars:8 }}</small></td>
+                                        <td><small>{{ order.user.username }}</small></td>
+                                        <td><small>${{ order.total_amount }}</small></td>
+                                        <td>
+                                            {% if order.status == 'pending' %}
+                                                <span class="badge bg-warning">{{ order.status|title }}</span>
+                                            {% elif order.status == 'confirmed' %}
+                                                <span class="badge bg-success">{{ order.status|title }}</span>
+                                            {% elif order.status == 'shipped' %}
+                                                <span class="badge bg-primary">{{ order.status|title }}</span>
+                                            {% elif order.status == 'delivered' %}
+                                                <span class="badge bg-info">{{ order.status|title }}</span>
+                                            {% elif order.status == 'cancelled' %}
+                                                <span class="badge bg-danger">{{ order.status|title }}</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ order.status|title }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td><small>{{ order.created_at|date:"M d" }}</small></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No recent orders</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Users -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-user-plus me-2"></i>Recent Users</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_users %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Username</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Joined</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in recent_users %}
+                                    <tr>
+                                        <td><small>{{ user.username }}</small></td>
+                                        <td><small>{{ user.email|truncatechars:20 }}</small></td>
+                                        <td>
+                                            {% if user.role == 'admin' %}
+                                                <span class="badge bg-danger">Admin</span>
+                                            {% elif user.role == 'vendor' %}
+                                                <span class="badge bg-success">Vendor</span>
+                                            {% else %}
+                                                <span class="badge bg-primary">User</span>
+                                            {% endif %}
+                                        </td>
+                                        <td><small>{{ user.date_joined|date:"M d" }}</small></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No recent users</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Status -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-server me-2"></i>System Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 text-center">
+                            <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                            <h6>Server Status</h6>
+                            <p class="text-success mb-0">Online</p>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <i class="fas fa-database fa-2x text-success mb-2"></i>
+                            <h6>Database</h6>
+                            <p class="text-success mb-0">Connected</p>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <i class="fas fa-shield-alt fa-2x text-success mb-2"></i>
+                            <h6>Security</h6>
+                            <p class="text-success mb-0">Active</p>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <i class="fas fa-rocket fa-2x text-info mb-2"></i>
+                            <h6>Performance</h6>
+                            <p class="text-info mb-0">Optimal</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+.btn {
+    transition: all 0.2s ease-in-out;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+</style>
+{% endblock %} 

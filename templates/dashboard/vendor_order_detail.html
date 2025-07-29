@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Order Details - Vendor Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-receipt me-3"></i>Order Details</h2>
+                    <p class="text-muted">Order #{{ order.order_id }}</p>
+                </div>
+                <a href="{% url 'dashboard:vendor_orders' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Orders
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Info -->
+    <div class="row mb-4">
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle me-2"></i>Order Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Order Details</h6>
+                            <p class="mb-1"><strong>Order ID:</strong> {{ order.order_id }}</p>
+                            <p class="mb-1"><strong>Date:</strong> {{ order.created_at|date:"F d, Y g:i A" }}</p>
+                            <p class="mb-1"><strong>Status:</strong> 
+                                <span class="badge 
+                                    {% if order.status == 'confirmed' %}bg-success
+                                    {% elif order.status == 'processing' %}bg-info
+                                    {% elif order.status == 'shipped' %}bg-warning text-dark
+                                    {% elif order.status == 'delivered' %}bg-primary
+                                    {% elif order.status == 'cancelled' %}bg-danger
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ order.get_status_display }}
+                                </span>
+                            </p>
+                            <p class="mb-0"><strong>Total Amount:</strong> <span class="text-success fw-bold">${{ order.total_amount }}</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Customer Information</h6>
+                            <p class="mb-1"><strong>Name:</strong> {{ order.user.first_name }} {{ order.user.last_name }}</p>
+                            <p class="mb-1"><strong>Email:</strong> {{ order.user.email }}</p>
+                            <p class="mb-1"><strong>Phone:</strong> {{ order.user.phone_number|default:"Not provided" }}</p>
+                            <p class="mb-0"><strong>Tracking ID:</strong> {{ order.tracking_id }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    {% if order.status != 'delivered' and order.status != 'cancelled' %}
+                    <div class="d-grid gap-2">
+                        {% if order.status == 'confirmed' %}
+                        <button class="btn btn-info" onclick="updateOrderStatus('{{ order.order_id }}', 'processing')">
+                            <i class="fas fa-cog me-2"></i>Mark as Processing
+                        </button>
+                        {% endif %}
+                        
+                        {% if order.status == 'processing' %}
+                        <button class="btn btn-warning" onclick="updateOrderStatus('{{ order.order_id }}', 'shipped')">
+                            <i class="fas fa-truck me-2"></i>Mark as Shipped
+                        </button>
+                        {% endif %}
+                        
+                        {% if order.status == 'shipped' %}
+                        <button class="btn btn-primary" onclick="updateOrderStatus('{{ order.order_id }}', 'delivered')">
+                            <i class="fas fa-home me-2"></i>Mark as Delivered
+                        </button>
+                        {% endif %}
+                        
+                        <hr>
+                        <button class="btn btn-outline-danger" onclick="updateOrderStatus('{{ order.order_id }}', 'cancelled')">
+                            <i class="fas fa-times me-2"></i>Cancel Order
+                        </button>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                        <p class="text-muted mb-0">Order is {{ order.get_status_display|lower }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Your Items in this Order -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-box me-2"></i>Your Items in this Order</h5>
+                </div>
+                <div class="card-body">
+                    {% for item in vendor_items %}
+                    <div class="row align-items-center mb-3 pb-3 {% if not forloop.last %}border-bottom{% endif %}">
+                        <div class="col-md-2">
+                            <img src="{% if item.product.image %}{{ item.product.image.url }}{% else %}{% static 'images/placeholder.svg' %}{% endif %}" 
+                                 class="img-fluid rounded" alt="{{ item.product.name }}" style="height: 80px; object-fit: cover;">
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="mb-1">{{ item.product.name }}</h6>
+                            <p class="text-muted small mb-1">{{ item.product.description|truncatewords:10 }}</p>
+                            <p class="text-success small mb-0">
+                                <i class="fas fa-tag me-1"></i>{{ item.product.category.name }}
+                            </p>
+                        </div>
+                        <div class="col-md-2 text-center">
+                            <span class="fw-bold">{{ item.quantity }}x</span>
+                        </div>
+                        <div class="col-md-2 text-center">
+                            <span class="fw-bold">${{ item.price }}</span>
+                        </div>
+                        <div class="col-md-2 text-end">
+                            <span class="fw-bold text-success">${{ item.get_total_price }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <!-- Total for your items -->
+                    <div class="row mt-3">
+                        <div class="col-md-8 offset-md-4">
+                            <div class="d-flex justify-content-between">
+                                <strong>Your Revenue from this Order:</strong>
+                                <strong class="text-success">
+                                    ${% for item in vendor_items %}{{ item.get_total_price|add:0 }}{% if not forloop.last %}{% endif %}{% endfor %}
+                                </strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shipping Information -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-truck me-2"></i>Shipping Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Delivery Address</h6>
+                            <div class="border rounded p-3 bg-light">
+                                {{ order.shipping_address|linebreaks }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Shipping Status</h6>
+                            <div class="list-group list-group-flush">
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>
+                                        <i class="fas fa-check-circle text-success me-2"></i>Order Confirmed
+                                    </span>
+                                    <small class="text-muted">{{ order.created_at|date:"M d, Y" }}</small>
+                                </div>
+                                {% if order.status == 'processing' or order.status == 'shipped' or order.status == 'delivered' %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>
+                                        <i class="fas fa-cog text-info me-2"></i>Processing
+                                    </span>
+                                    <small class="text-muted">In progress</small>
+                                </div>
+                                {% endif %}
+                                {% if order.status == 'shipped' or order.status == 'delivered' %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>
+                                        <i class="fas fa-truck text-warning me-2"></i>Shipped
+                                    </span>
+                                    <small class="text-muted">Track: {{ order.tracking_id }}</small>
+                                </div>
+                                {% endif %}
+                                {% if order.status == 'delivered' %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>
+                                        <i class="fas fa-home text-success me-2"></i>Delivered
+                                    </span>
+                                    <small class="text-muted">Completed</small>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Update Order Status Form -->
+<form id="updateStatusForm" method="post" style="display: none;">
+    {% csrf_token %}
+    <input type="hidden" name="status" id="newStatus">
+</form>
+
+<script>
+function updateOrderStatus(orderId, status) {
+    const statusNames = {
+        'processing': 'Processing',
+        'shipped': 'Shipped',
+        'delivered': 'Delivered',
+        'cancelled': 'Cancelled'
+    };
+    
+    const statusName = statusNames[status] || status;
+    
+    if (confirm(`Are you sure you want to update this order status to "${statusName}"?`)) {
+        const form = document.getElementById('updateStatusForm');
+        form.action = `/dashboard/update-order-status/${orderId}/`;
+        document.getElementById('newStatus').value = status;
+        form.submit();
+    }
+}
+</script>
+
+<style>
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.list-group-item {
+    border-left: none;
+    border-right: none;
+}
+
+.list-group-item:first-child {
+    border-top: none;
+}
+
+.list-group-item:last-child {
+    border-bottom: none;
+}
+</style>
+{% endblock %} 

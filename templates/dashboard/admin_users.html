@@ -1,0 +1,361 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Users - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-users me-3"></i>Manage Users</h2>
+                    <p class="text-muted">View and manage all platform users</p>
+                </div>
+                <a href="{% url 'dashboard:home' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-filter me-2"></i>Filters</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-4">
+                            <label for="role" class="form-label">Filter by Role</label>
+                            <select class="form-select" id="role" name="role">
+                                <option value="">All Roles</option>
+                                <option value="user" {% if role_filter == 'user' %}selected{% endif %}>Users</option>
+                                <option value="vendor" {% if role_filter == 'vendor' %}selected{% endif %}>Vendors</option>
+                                <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admins</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-search me-1"></i>Filter
+                            </button>
+                            <a href="{% url 'dashboard:admin_users' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i>Clear
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden CSRF token for JavaScript -->
+    {% csrf_token %}
+
+    <!-- Users Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5><i class="fas fa-list me-2"></i>Users List</h5>
+                    <span class="badge bg-primary">{{ users|length }} of {{ users.paginator.count }} users</span>
+                </div>
+                <div class="card-body">
+                    {% if users %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Username</th>
+                                        <th>Email</th>
+                                        <th>First Name</th>
+                                        <th>Last Name</th>
+                                        <th>Role</th>
+                                        <th>Status</th>
+                                        <th>Joined</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in users %}
+                                    <tr>
+                                        <td><small>{{ user.id }}</small></td>
+                                        <td>
+                                            <strong>{{ user.username }}</strong>
+                                            {% if user.is_superuser %}
+                                                <i class="fas fa-crown text-warning ms-1" title="Superuser"></i>
+                                            {% endif %}
+                                        </td>
+                                        <td><small>{{ user.email }}</small></td>
+                                        <td><small>{{ user.first_name|default:"-" }}</small></td>
+                                        <td><small>{{ user.last_name|default:"-" }}</small></td>
+                                        <td>
+                                            {% if user.role == 'admin' %}
+                                                <span class="badge bg-danger">Admin</span>
+                                            {% elif user.role == 'vendor' %}
+                                                <span class="badge bg-success">Vendor</span>
+                                            {% else %}
+                                                <span class="badge bg-primary">User</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if user.is_active %}
+                                                <span class="badge bg-success">Active</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Inactive</span>
+                                            {% endif %}
+                                        </td>
+                                        <td><small>{{ user.date_joined|date:"M d, Y" }}</small></td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group" aria-label="User Actions">
+                                                <a href="/admin/accounts/user/{{ user.id }}/change/" 
+                                                   class="btn btn-outline-primary btn-sm" 
+                                                   target="_blank" 
+                                                   title="Edit User in Django Admin"
+                                                   data-bs-toggle="tooltip">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                {% if user.role == 'vendor' %}
+                                                <a href="{% url 'dashboard:admin_user_products' user.id %}" 
+                                                   class="btn btn-outline-info btn-sm" 
+                                                   title="View Vendor Products"
+                                                   data-bs-toggle="tooltip">
+                                                    <i class="fas fa-box"></i>
+                                                </a>
+                                                {% endif %}
+                                                {% if user.wallet %}
+                                                <a href="{% url 'dashboard:admin_user_wallet' user.id %}" 
+                                                   class="btn btn-outline-success btn-sm" 
+                                                   title="View User Wallet: ${{ user.wallet.balance }}"
+                                                   data-bs-toggle="tooltip">
+                                                    <i class="fas fa-wallet"></i>
+                                                </a>
+                                                {% endif %}
+                                                {% if user != request.user and not user.is_superuser %}
+                                                <button class="btn btn-outline-danger btn-sm remove-user-btn" 
+                                                        title="Remove User from Platform" 
+                                                        data-user-id="{{ user.id }}"
+                                                        data-username="{{ user.username }}"
+                                                        data-user-role="{{ user.role }}"
+                                                        data-bs-toggle="tooltip">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        {% if users.has_other_pages %}
+                        <nav aria-label="Users pagination" class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                {% if users.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1{% if role_filter %}&role={{ role_filter }}{% endif %}">
+                                            <i class="fas fa-angle-double-left"></i>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ users.previous_page_number }}{% if role_filter %}&role={{ role_filter }}{% endif %}">
+                                            <i class="fas fa-angle-left"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+
+                                {% for num in users.paginator.page_range %}
+                                    {% if users.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% elif num > users.number|add:'-3' and num < users.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}{% if role_filter %}&role={{ role_filter }}{% endif %}">{{ num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if users.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ users.next_page_number }}{% if role_filter %}&role={{ role_filter }}{% endif %}">
+                                            <i class="fas fa-angle-right"></i>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ users.paginator.num_pages }}{% if role_filter %}&role={{ role_filter }}{% endif %}">
+                                            <i class="fas fa-angle-double-right"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                        {% endif %}
+
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                            <h5>No Users Found</h5>
+                            <p class="text-muted">
+                                {% if role_filter %}
+                                    No users found for the selected role: <strong>{{ role_filter|title }}</strong>
+                                {% else %}
+                                    No users are registered yet.
+                                {% endif %}
+                            </p>
+                            {% if role_filter %}
+                            <a href="{% url 'dashboard:admin_users' %}" class="btn btn-primary">
+                                <i class="fas fa-list me-2"></i>Show All Users
+                            </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mt-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-primary">
+                <div class="card-body text-center">
+                    <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                    <h5 class="text-primary">{{ users.paginator.count }}</h5>
+                    <p class="text-muted mb-0">Total Users</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <i class="fas fa-store fa-2x text-success mb-2"></i>
+                    <h5 class="text-success">{{ users.paginator.object_list|length }}</h5>
+                    <p class="text-muted mb-0">Current Page</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-info">
+                <div class="card-body text-center">
+                    <i class="fas fa-check-circle fa-2x text-info mb-2"></i>
+                    <h5 class="text-info">Active</h5>
+                    <p class="text-muted mb-0">Status</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-warning">
+                <div class="card-body text-center">
+                    <i class="fas fa-cog fa-2x text-warning mb-2"></i>
+                    <h5 class="text-warning">Manage</h5>
+                    <p class="text-muted mb-0">Actions</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Bootstrap tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Handle remove user buttons
+    document.querySelectorAll('.remove-user-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const userId = this.getAttribute('data-user-id');
+            const username = this.getAttribute('data-username');
+            const userRole = this.getAttribute('data-user-role');
+
+            if (confirm(`Are you sure you want to remove ${userRole} "${username}" from the platform?\n\nThis action cannot be undone and will:\n• Delete the user account permanently\n• Remove all associated data (orders, wallet, etc.)\n• This cannot be reversed\n\nContinue?`)) {
+                // Show loading state
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                this.disabled = true;
+                
+                // Create a form and submit it for secure deletion
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `{% url 'dashboard:admin_remove_user' 0 %}`.replace('0', userId);
+                
+                // Add CSRF token
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+                if (csrfToken) {
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = 'csrfmiddlewaretoken';
+                    csrfInput.value = csrfToken.value;
+                    form.appendChild(csrfInput);
+                } else {
+                    // Fallback: get CSRF token from cookie
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = 'csrfmiddlewaretoken';
+                    csrfInput.value = getCookie('csrftoken');
+                    form.appendChild(csrfInput);
+                }
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    });
+
+    // Helper function to get cookie value
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Auto-submit form on select change
+    document.getElementById('role').addEventListener('change', function() {
+        this.form.submit();
+    });
+});
+</script>
+
+<style>
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+    background-color: #f8f9fa;
+}
+
+.btn-group-sm .btn {
+    padding: 0.25rem 0.4rem;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+</style>
+{% endblock %} 

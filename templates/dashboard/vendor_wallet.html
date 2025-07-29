@@ -1,0 +1,297 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Vendor Wallet - VibeMart{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-wallet me-3"></i>Vendor Wallet</h2>
+                    <p class="text-muted">Manage your earnings and withdrawals</p>
+                </div>
+                <a href="{% url 'dashboard:home' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Wallet Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <i class="fas fa-dollar-sign fa-2x text-success mb-2"></i>
+                    <h4 class="text-success">${{ wallet.balance|floatformat:2 }}</h4>
+                    <p class="text-muted mb-0">Current Balance</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-primary">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-line fa-2x text-primary mb-2"></i>
+                    <h4 class="text-primary">${{ monthly_earnings|floatformat:2 }}</h4>
+                    <p class="text-muted mb-0">This Month</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-info">
+                <div class="card-body text-center">
+                    <i class="fas fa-coins fa-2x text-info mb-2"></i>
+                    <h4 class="text-info">${{ total_earnings|floatformat:2 }}</h4>
+                    <p class="text-muted mb-0">Total Earnings</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-warning">
+                <div class="card-body text-center">
+                    <i class="fas fa-money-bill-wave fa-2x text-warning mb-2"></i>
+                    <h4 class="text-warning">${{ pending_withdrawals|floatformat:2 }}</h4>
+                    <p class="text-muted mb-0">Total Withdrawn</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions and Recent Transactions -->
+    <div class="row">
+        <!-- Wallet Actions -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5><i class="fas fa-cog me-2"></i>Wallet Actions</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Withdraw Money -->
+                    <div class="mb-4">
+                        <h6>Withdraw Money</h6>
+                        <form method="post" action="{% url 'dashboard:withdraw_money' %}">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="amount" class="form-label">Amount ($)</label>
+                                <input type="number" step="0.01" class="form-control" id="amount" name="amount" 
+                                       max="{{ wallet.balance }}" min="1" placeholder="Enter amount" required>
+                                <div class="form-text">Available: ${{ wallet.balance }}</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description (Optional)</label>
+                                <input type="text" class="form-control" id="description" name="description" 
+                                       placeholder="e.g., Bank transfer">
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-success" 
+                                        {% if wallet.balance <= 0 %}disabled{% endif %}>
+                                    <i class="fas fa-money-bill-wave me-2"></i>Request Withdrawal
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Quick Stats -->
+                    <div class="border-top pt-3">
+                        <h6>Account Summary</h6>
+                        <div class="d-flex justify-content-between mb-2">
+                            <small class="text-muted">Account Type:</small>
+                            <span class="badge bg-success">Vendor</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <small class="text-muted">Member Since:</small>
+                            <small>{{ user.date_joined|date:"M Y" }}</small>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <small class="text-muted">Active Products:</small>
+                            <small>{{ user.product_set.count }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Help & Info -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6><i class="fas fa-info-circle me-2"></i>Withdrawal Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="small text-muted">
+                        <ul class="mb-0">
+                            <li>Withdrawals are processed within 1-3 business days</li>
+                            <li>Minimum withdrawal amount is $1.00</li>
+                            <li>Money from sales is instantly added to your wallet</li>
+                            <li>Track all transactions in the history section</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transaction History -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-history me-2"></i>Recent Transactions</h5>
+                </div>
+                <div class="card-body">
+                    {% if transactions %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Type</th>
+                                        <th>Description</th>
+                                        <th>Amount</th>
+                                        <th>Balance</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for transaction in transactions %}
+                                    <tr>
+                                        <td>
+                                            <small>{{ transaction.date|date:"M d, Y g:i A" }}</small>
+                                        </td>
+                                        <td>
+                                            {% if transaction.transaction_type == 'credit' %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-plus me-1"></i>Credit
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-minus me-1"></i>Debit
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="small">{{ transaction.description|truncatechars:30 }}</span>
+                                        </td>
+                                        <td>
+                                            {% if transaction.transaction_type == 'credit' %}
+                                                <span class="text-success fw-bold">+${{ transaction.amount }}</span>
+                                            {% else %}
+                                                <span class="text-danger fw-bold">-${{ transaction.amount }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="text-muted small">${{ wallet.balance|floatformat:2 }}</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        {% if transactions.count >= 20 %}
+                        <div class="text-center mt-3">
+                            <small class="text-muted">Showing latest 20 transactions</small>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-receipt fa-3x text-muted mb-3"></i>
+                            <h6>No Transactions Yet</h6>
+                            <p class="text-muted">Your transaction history will appear here once you start selling products.</p>
+                            <a href="{% url 'dashboard:vendor_products' %}" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Add Products
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Earnings Chart (Future Enhancement) -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-area me-2"></i>Earnings Overview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center py-3">
+                                <i class="fas fa-trophy fa-2x text-warning mb-2"></i>
+                                <h6>Best Month</h6>
+                                <p class="text-muted mb-0">Track your performance</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center py-3">
+                                <i class="fas fa-trending-up fa-2x text-success mb-2"></i>
+                                <h6>Growth Rate</h6>
+                                <p class="text-muted mb-0">Monitor your progress</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center py-3">
+                                <i class="fas fa-target fa-2x text-primary mb-2"></i>
+                                <h6>Goals</h6>
+                                <p class="text-muted mb-0">Set earning targets</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Form validation
+document.addEventListener('DOMContentLoaded', function() {
+    const withdrawForm = document.querySelector('form[action*="withdraw-money"]');
+    const amountInput = document.getElementById('amount');
+    const maxAmount = parseFloat('{{ wallet.balance }}');
+    
+    if (withdrawForm) {
+        withdrawForm.addEventListener('submit', function(e) {
+            const amount = parseFloat(amountInput.value);
+            
+            if (amount <= 0) {
+                e.preventDefault();
+                alert('Please enter a valid amount greater than $0');
+                return;
+            }
+            
+            if (amount > maxAmount) {
+                e.preventDefault();
+                alert(`Amount cannot exceed your current balance of $${maxAmount.toFixed(2)}`);
+                return;
+            }
+            
+            if (!confirm(`Are you sure you want to withdraw $${amount.toFixed(2)}?`)) {
+                e.preventDefault();
+            }
+        });
+    }
+});
+</script>
+
+<style>
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+</style>
+{% endblock %} 

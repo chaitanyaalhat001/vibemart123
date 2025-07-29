@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ product.name }} - VibeMart{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'shop:home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'shop:products' %}">Products</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'shop:products' %}?category={{ product.category.id }}">{{ product.category.name }}</a></li>
+            <li class="breadcrumb-item active">{{ product.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Product Image -->
+        <div class="col-md-6">
+            <div class="card">
+                <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'images/placeholder.svg' %}{% endif %}" 
+                     class="card-img-top" alt="{{ product.name }}" style="height: 400px; object-fit: cover;">
+            </div>
+        </div>
+
+        <!-- Product Details -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h1 class="card-title">{{ product.name }}</h1>
+                    
+                    <!-- Price and Stock -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="price display-6">${{ product.price }}</span>
+                        {% if product.is_in_stock %}
+                            <span class="badge bg-success">{{ product.stock }} in stock</span>
+                        {% else %}
+                            <span class="badge bg-danger">Out of Stock</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Vendor Info -->
+                    <div class="mb-3">
+                        <h6>Sold by:</h6>
+                        <p class="text-muted">
+                            <i class="fas fa-store me-2"></i>{{ product.vendor.first_name }} {{ product.vendor.last_name }}
+                        </p>
+                    </div>
+
+                    <!-- Category -->
+                    <div class="mb-3">
+                        <h6>Category:</h6>
+                        <a href="{% url 'shop:products' %}?category={{ product.category.id }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-tag me-1"></i>{{ product.category.name }}
+                        </a>
+                    </div>
+
+                    <!-- Add to Cart Section -->
+                    {% if product.is_in_stock %}
+                        {% if user.is_authenticated %}
+                            {% if user.is_user %}
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label for="quantity" class="form-label">Quantity:</label>
+                                    <input type="number" id="quantity" class="form-control" value="1" min="1" max="{{ product.stock }}">
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary btn-lg flex-grow-1 add-to-cart-btn" 
+                                        data-product-id="{{ product.id }}">
+                                    <i class="fas fa-cart-plus me-2"></i>Add to Cart
+                                </button>
+                                <button class="btn btn-success btn-lg" onclick="buyNow()">
+                                    <i class="fas fa-bolt me-2"></i>Buy Now
+                                </button>
+                            </div>
+                            {% else %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Only regular users can purchase products. 
+                                {% if user.is_vendor %}
+                                    Vendors can manage their own products from the dashboard.
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        {% else %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-sign-in-alt me-2"></i>
+                            Please <a href="{% url 'accounts:login' %}" class="alert-link">login</a> 
+                            to add items to your cart.
+                        </div>
+                        {% endif %}
+                    {% else %}
+                    <div class="alert alert-danger">
+                        <i class="fas fa-times-circle me-2"></i>This product is currently out of stock.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Description -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle me-2"></i>Product Description</h5>
+                </div>
+                <div class="card-body">
+                    <p class="lead">{{ product.description }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Products -->
+    {% if related_products %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <h4><i class="fas fa-boxes me-2"></i>Related Products</h4>
+            <div class="row">
+                {% for related in related_products %}
+                <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                    <div class="card product-card h-100 shadow-sm">
+                        <img src="{% if related.image %}{{ related.image.url }}{% else %}{% static 'images/placeholder.svg' %}{% endif %}" 
+                             class="card-img-top" alt="{{ related.name }}" style="height: 200px; object-fit: cover;">
+                        <div class="card-body">
+                            <h6 class="card-title">{{ related.name|truncatechars:30 }}</h6>
+                            <p class="price">${{ related.price }}</p>
+                            <a href="{% url 'shop:product_detail' related.id %}" class="btn btn-outline-primary btn-sm w-100">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function buyNow() {
+    const quantity = document.getElementById('quantity').value;
+    const productId = document.querySelector('.add-to-cart-btn').dataset.productId;
+    
+    // Add to cart first
+    fetch('/shop/add-to-cart/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({
+            product_id: productId,
+            quantity: parseInt(quantity)
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Redirect to checkout
+            window.location.href = '/shop/checkout/';
+        } else {
+            alert(data.message || 'Error adding product to cart');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error processing request');
+    });
+}
+
+// Update add to cart functionality for this page
+document.addEventListener('DOMContentLoaded', function() {
+    const addToCartBtn = document.querySelector('.add-to-cart-btn');
+    if (addToCartBtn) {
+        addToCartBtn.addEventListener('click', function() {
+            const quantity = document.getElementById('quantity').value;
+            this.dataset.quantity = quantity;
+        });
+    }
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,308 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Marketplace Earnings - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-dollar-sign me-3"></i>Marketplace Earnings</h2>
+                    <p class="text-muted">Commission earnings and marketplace financial overview</p>
+                </div>
+                <a href="{% url 'dashboard:home' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Earnings Overview -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <i class="fas fa-wallet fa-2x text-success mb-2"></i>
+                    <h4 class="text-success">${{ current_balance|floatformat:2 }}</h4>
+                    <p class="text-muted mb-0">Current Balance</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-primary">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-line fa-2x text-primary mb-2"></i>
+                    <h4 class="text-primary">${{ total_commissions|floatformat:2 }}</h4>
+                    <p class="text-muted mb-0">Total Earned</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-info">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-month fa-2x text-info mb-2"></i>
+                    <h4 class="text-info">${{ monthly_commissions|floatformat:2 }}</h4>
+                    <p class="text-muted mb-0">This Month</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-warning">
+                <div class="card-body text-center">
+                    <i class="fas fa-percentage fa-2x text-warning mb-2"></i>
+                    <h4 class="text-warning">{{ commission_rate }}%</h4>
+                    <p class="text-muted mb-0">Commission Rate</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Commission by Vendor -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5><i class="fas fa-users me-2"></i>Top Vendors by Commission</h5>
+                </div>
+                <div class="card-body">
+                    {% if vendor_commissions %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Vendor</th>
+                                        <th>Total Commission</th>
+                                        <th>Orders</th>
+                                        <th>Avg Commission/Order</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for vendor_data in vendor_commissions %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ vendor_data.vendor_username }}</strong>
+                                        </td>
+                                        <td>
+                                            <span class="text-success fw-bold">${{ vendor_data.total_commission|floatformat:2 }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">{{ vendor_data.order_count }}</span>
+                                        </td>
+                                        <td>
+                                            ${{ vendor_data.avg_commission|floatformat:2 }}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
+                            <h5>No Commission Data Yet</h5>
+                            <p class="text-muted">Commission data will appear here after sales are made.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Marketplace Transactions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5><i class="fas fa-receipt me-2"></i>Marketplace Transactions</h5>
+                    <span class="badge bg-primary">{{ transactions|length }} of {{ transactions.paginator.count }} transactions</span>
+                </div>
+                <div class="card-body">
+                    {% if transactions %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date & Time</th>
+                                        <th>Type</th>
+                                        <th>Amount</th>
+                                        <th>Vendor</th>
+                                        <th>Order ID</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for transaction in transactions %}
+                                    <tr>
+                                        <td>
+                                            <small>{{ transaction.date|date:"M d, Y" }}</small><br>
+                                            <small class="text-muted">{{ transaction.date|date:"g:i A" }}</small>
+                                        </td>
+                                        <td>
+                                            {% if transaction.transaction_type == 'commission' %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-percentage me-1"></i>Commission
+                                                </span>
+                                            {% elif transaction.transaction_type == 'expense' %}
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-minus me-1"></i>Expense
+                                                </span>
+                                            {% elif transaction.transaction_type == 'withdrawal' %}
+                                                <span class="badge bg-warning">
+                                                    <i class="fas fa-arrow-up me-1"></i>Withdrawal
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="text-success fw-bold">+${{ transaction.amount|floatformat:2 }}</span>
+                                        </td>
+                                        <td>
+                                            {% if transaction.vendor_username %}
+                                                <span class="badge bg-secondary">{{ transaction.vendor_username }}</span>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if transaction.related_order_id %}
+                                                <small class="font-monospace">{{ transaction.related_order_id|truncatechars:20 }}</small>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="text-muted">{{ transaction.description|truncatechars:40 }}</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        {% if transactions.has_other_pages %}
+                        <nav aria-label="Transactions pagination" class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                {% if transactions.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1">
+                                            <i class="fas fa-angle-double-left"></i>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ transactions.previous_page_number }}">
+                                            <i class="fas fa-angle-left"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+
+                                {% for num in transactions.paginator.page_range %}
+                                    {% if transactions.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% elif num > transactions.number|add:'-3' and num < transactions.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if transactions.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ transactions.next_page_number }}">
+                                            <i class="fas fa-angle-right"></i>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ transactions.paginator.num_pages }}">
+                                            <i class="fas fa-angle-double-right"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                        {% endif %}
+
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-receipt fa-3x text-muted mb-3"></i>
+                            <h5>No Transactions Yet</h5>
+                            <p class="text-muted">Marketplace transactions will appear here after sales are made.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Commission System Info -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-info">
+                <div class="card-header bg-info text-white">
+                    <h5><i class="fas fa-info-circle me-2"></i>Commission System Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>How It Works</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check-circle text-success me-2"></i>{{ commission_rate }}% commission deducted from vendor sales</li>
+                                <li><i class="fas fa-check-circle text-success me-2"></i>Commission automatically added to marketplace wallet</li>
+                                <li><i class="fas fa-check-circle text-success me-2"></i>Vendors receive {{ vendor_percentage }}% of sale price</li>
+                                <li><i class="fas fa-check-circle text-success me-2"></i>All transactions tracked and auditable</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Commission Breakdown</h6>
+                            <div class="row">
+                                <div class="col-6">
+                                    <strong>Sale: $100.00</strong>
+                                </div>
+                                <div class="col-6">
+                                    <span class="text-muted">Example breakdown:</span>
+                                </div>
+                                <div class="col-6">
+                                    <span class="text-success">Vendor gets: ${{ vendor_percentage }}.00</span>
+                                </div>
+                                <div class="col-6">
+                                    <span class="text-primary">Platform gets: ${{ commission_rate }}.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+    background-color: #f8f9fa;
+}
+
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+.font-monospace {
+    font-family: 'Courier New', monospace;
+}
+</style>
+{% endblock %} 

@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ user_type }} Login - VibeMart{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center">
+                    <h4><i class="fas fa-sign-in-alt me-2"></i>{{ user_type }} Login</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    {% if user_type == "User" %}
+                        <p class="mb-0">Don't have an account? 
+                            <a href="{% url 'accounts:register' %}" class="text-decoration-none">Sign Up</a>
+                        </p>
+                    {% elif user_type == "Vendor" %}
+                        <p class="mb-0">Not a vendor yet? 
+                            <a href="{% url 'accounts:vendor_register' %}" class="text-decoration-none">Register</a>
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Quick login buttons for other user types -->
+            <div class="text-center mt-3">
+                {% if user_type != "User" %}
+                    <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary btn-sm me-2">
+                        <i class="fas fa-user me-1"></i>User Login
+                    </a>
+                {% endif %}
+                {% if user_type != "Vendor" %}
+                    <a href="{% url 'accounts:vendor_login' %}" class="btn btn-outline-success btn-sm me-2">
+                        <i class="fas fa-store me-1"></i>Vendor Login
+                    </a>
+                {% endif %}
+                {% if user_type != "Admin" %}
+                    <a href="{% url 'accounts:admin_login' %}" class="btn btn-outline-warning btn-sm">
+                        <i class="fas fa-user-shield me-1"></i>Admin Login
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

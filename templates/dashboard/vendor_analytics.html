@@ -1,0 +1,277 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Analytics - Vendor Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-chart-line me-3"></i>Analytics Dashboard</h2>
+                    <p class="text-muted">Track your business performance and sales insights</p>
+                </div>
+                <a href="{% url 'dashboard:home' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-primary">
+                <div class="card-body text-center">
+                    <i class="fas fa-box fa-2x text-primary mb-2"></i>
+                    <h4 class="text-primary">{{ total_products }}</h4>
+                    <p class="text-muted mb-0">Total Products</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <i class="fas fa-shopping-cart fa-2x text-success mb-2"></i>
+                    <h4 class="text-success">{{ total_sales }}</h4>
+                    <p class="text-muted mb-0">Items Sold</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-warning">
+                <div class="card-body text-center">
+                    <i class="fas fa-dollar-sign fa-2x text-warning mb-2"></i>
+                    <h4 class="text-warning">${{ total_revenue|floatformat:2 }}</h4>
+                    <p class="text-muted mb-0">Total Revenue</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-info">
+                <div class="card-body text-center">
+                    <i class="fas fa-star fa-2x text-info mb-2"></i>
+                    <h4 class="text-info">4.5</h4>
+                    <p class="text-muted mb-0">Avg Rating</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts and Analytics -->
+    <div class="row">
+        <!-- Sales by Product -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-bar me-2"></i>Sales by Product</h5>
+                </div>
+                <div class="card-body">
+                    {% if sales_by_product %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Units Sold</th>
+                                        <th>Revenue</th>
+                                        <th>Performance</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for sale in sales_by_product %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ sale.product__name|truncatechars:30 }}</strong>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary">{{ sale.total_sold }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="text-success fw-bold">${{ sale.total_revenue|floatformat:2 }}</span>
+                                        </td>
+                                                                                 <td>
+                                             <div class="progress" style="height: 20px;">
+                                                 <div class="progress-bar bg-success" 
+                                                      style="width: {% widthratio sale.total_sold sales_by_product.0.total_sold 100 %}%">
+                                                     <small>{% widthratio sale.total_sold sales_by_product.0.total_sold 100 %}%</small>
+                                                 </div>
+                                             </div>
+                                         </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No sales data available yet</p>
+                            <a href="{% url 'dashboard:vendor_products' %}" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Add Your First Product
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-tachometer-alt me-2"></i>Quick Stats</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Best Selling Product:</span>
+                            <strong class="text-success">
+                                {% if sales_by_product %}
+                                    {{ sales_by_product.0.product__name|truncatechars:15 }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </strong>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Average Order Value:</span>
+                            <strong class="text-info">
+                                {% if total_sales > 0 %}
+                                    ${% widthratio total_revenue total_sales 1 %}
+                                {% else %}
+                                    $0.00
+                                {% endif %}
+                            </strong>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Total Orders:</span>
+                            <strong class="text-warning">{{ total_orders }}</strong>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Revenue per Product:</span>
+                            <strong class="text-primary">
+                                {% if total_products > 0 %}
+                                    ${% widthratio total_revenue total_products 1 %}
+                                {% else %}
+                                    $0.00
+                                {% endif %}
+                            </strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Performance -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-calendar me-2"></i>This Month</h5>
+                </div>
+                <div class="card-body">
+                    {% if monthly_sales %}
+                        {% for month in monthly_sales %}
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Month {{ month.order__created_at__month }}</span>
+                                <span class="fw-bold">${{ month.total_revenue|floatformat:2 }}</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-info" 
+                                     style="width: {% widthratio month.total_revenue monthly_sales.0.total_revenue 100 %}%"></div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="fas fa-chart-pie fa-2x text-muted mb-2"></i>
+                            <p class="text-muted mb-0">No monthly data yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-history me-2"></i>Recent Activity</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Latest Sales</h6>
+                            {% if sales_by_product %}
+                                <ul class="list-group list-group-flush">
+                                    {% for sale in sales_by_product|slice:":5" %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        {{ sale.product__name|truncatechars:25 }}
+                                        <span class="badge bg-success rounded-pill">{{ sale.total_sold }} sold</span>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p class="text-muted">No sales data available</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Performance Tips</h6>
+                            <div class="list-group list-group-flush">
+                                <div class="list-group-item">
+                                    <small class="text-success">
+                                        <i class="fas fa-lightbulb me-1"></i>
+                                        Add high-quality product images to increase sales
+                                    </small>
+                                </div>
+                                <div class="list-group-item">
+                                    <small class="text-info">
+                                        <i class="fas fa-star me-1"></i>
+                                        Respond quickly to customer inquiries
+                                    </small>
+                                </div>
+                                <div class="list-group-item">
+                                    <small class="text-warning">
+                                        <i class="fas fa-shipping-fast me-1"></i>
+                                        Update order status regularly for better ratings
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+}
+
+.progress {
+    height: 8px;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+}
+</style>
+{% endblock %} 
